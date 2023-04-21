@@ -56,6 +56,9 @@ public class CourseSchServiceImpl implements CourseSchService{
 		}
 		LocalTime stTi = LocalTime.parse(request.getStartTime(), formatter);
 		LocalTime enTi = LocalTime.parse(request.getEndTime(), formatter);
+		if(stTi.compareTo(enTi) > 0 ) {
+			return new CourseSchResponse("課程開始時間不得晚於結束時間 課程時間設定有誤");
+		}
 		Cou.setStartTime(stTi);
 		Cou.setEndTime(enTi);
 		int classtime = (int)ChronoUnit.HOURS.between(stTi, enTi);

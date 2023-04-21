@@ -118,10 +118,8 @@ public class StudentServiceImpl implements StudentService {
 				CourseSch co = courseSchDao.findById(C).get();
 				if(!co.getTakeClassDay().equals(cou.getTakeClassDay())) {
 					continue;
-				} else if(!((co.getStartTime().compareTo(cou.getStartTime()) < 0
-						&& co.getEndTime().compareTo(cou.getStartTime()) >= 0)
-						|| (co.getStartTime().compareTo(cou.getEndTime()) <= 0
-						&& co.getEndTime().compareTo(cou.getEndTime()) > 0))) {
+				} else if(co.getEndTime().compareTo(cou.getStartTime()) <= 0
+						|| co.getStartTime().compareTo(cou.getEndTime()) >= 0) {
 					continue;
 				}  else {
 					count++;
@@ -150,10 +148,8 @@ public class StudentServiceImpl implements StudentService {
 					}
 					if(!cou.getTakeClassDay().equals(seleCou.getTakeClassDay())) {
 						continue;
-					} else if(!((cou.getStartTime().compareTo(seleCou.getStartTime()) < 0
-							&& cou.getEndTime().compareTo(seleCou.getStartTime()) >= 0)
-							|| (cou.getStartTime().compareTo(seleCou.getEndTime()) <= 0
-							&& cou.getEndTime().compareTo(seleCou.getEndTime()) > 0))) {
+					} else if(cou.getEndTime().compareTo(seleCou.getStartTime()) <= 0
+							|| cou.getStartTime().compareTo(seleCou.getEndTime()) >= 0) {
 						continue;
 					} else {
 							errMge += Co + " : 該課堂跟已加選的課程衝堂 ";
