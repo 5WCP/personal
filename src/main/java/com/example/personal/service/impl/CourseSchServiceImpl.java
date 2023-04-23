@@ -25,21 +25,23 @@ public class CourseSchServiceImpl implements CourseSchService{
 	@Override
 	public CourseSchResponse addCourse(CourseSchRequest request) {
 		Optional<CourseSch> checkCou = Optional.ofNullable(request.getCoursesch());
-		if(!checkCou.isPresent()) {
+		if(!checkCou.isPresent()) { // 檢查是否完全未輸入
 			return new CourseSchResponse("填寫欄位請勿空白");
 		}
 		CourseSch Cou = request.getCoursesch();
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss"); 
 		String timeFormat = "\\d{2}(:\\d{2}){2}";
 		String dayFormat = "星期[日一二三四五六]";
 		String CoFormat = "[ABC]\\d{2}";
-		if(!StringUtils.hasText(Cou.getCourseCode())
+		if(!StringUtils.hasText(Cou.getCourseCode()) // 檢查是否未輸入 ("" ," ")
 			|| !StringUtils.hasText(Cou.getCourseName())
 			|| !StringUtils.hasText(Cou.getTakeClassDay())
-			|| Cou.getCredits()==0
 			|| !StringUtils.hasText(request.getStartTime())
 			|| !StringUtils.hasText(request.getEndTime())) {
 			return new CourseSchResponse("所需填寫欄位請確實填寫");
+		}
+		if(Cou.getCredits() < 1 || Cou.getCredits() > 3) {
+			return new CourseSchResponse("學分數只能為1~3這個區間");
 		}
 		if(!Cou.getCourseCode().matches(CoFormat)) {
 			return new CourseSchResponse("課程代碼格式錯誤 正確格式 : (A|B|C)&兩個阿拉伯數字");
@@ -56,13 +58,13 @@ public class CourseSchServiceImpl implements CourseSchService{
 		}
 		LocalTime stTi = LocalTime.parse(request.getStartTime(), formatter);
 		LocalTime enTi = LocalTime.parse(request.getEndTime(), formatter);
-		if(stTi.compareTo(enTi) > 0 ) {
+		if(stTi.compareTo(enTi) > 0 ) { // 檢查結束時間是否在開始時間之後
 			return new CourseSchResponse("課程開始時間不得晚於結束時間 課程時間設定有誤");
 		}
 		Cou.setStartTime(stTi);
 		Cou.setEndTime(enTi);
-		int classtime = (int)ChronoUnit.HOURS.between(stTi, enTi);
-		if(Cou.getCredits() != classtime) {
+		int classtime = (int)ChronoUnit.HOURS.between(stTi, enTi); // 上課時間
+		if(Cou.getCredits() != classtime) { // 上課時間比對學分數
 			return new CourseSchResponse("一學分對應的課程時數為一小時 上課時長或學分設定有誤");
 		}
 		courseSchDao.save(Cou);
@@ -97,7 +99,7 @@ public class CourseSchServiceImpl implements CourseSchService{
 			return new CourseSchResponse(reqCo, "查無此課程代碼");
 		}
 		CourseSch Cou = courseSchDao.findById(reqCo).get();
-		if(Cou.getStuCount() > 0) {
+		if(Cou.getStuCount() > 0) { // 大於0代表有學生選修中
 			String mes = "無法刪除課程 有" + Cou.getStuCount() + "名學生選修中";
 			return new CourseSchResponse(reqCo , mes);
 		}

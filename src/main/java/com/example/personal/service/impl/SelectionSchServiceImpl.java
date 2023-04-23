@@ -34,8 +34,8 @@ public class SelectionSchServiceImpl implements SelectionSchService {
 	public SelectionSchResponse searchStuSeleCour(SelectionSchRequest request) {
 		String reqStId = request.getStudId();
 		String StudIdFormat = "[BCD]\\d{4}";
-		List<CourseSch> stIdCouSchList = new ArrayList<>();
-		List<SelectionSch> stIdSeleSchList = selectionSchDao.findByStudId(reqStId);
+		List<CourseSch> stIdCouSchList = new ArrayList<>(); // 該學號所選的課程列表
+		List<SelectionSch> stIdSeleSchList = selectionSchDao.findByStudId(reqStId); // 學生所選的課
 		if(!StringUtils.hasText(reqStId)) {
 			return new SelectionSchResponse("查詢學號請確實填寫");
 		}
@@ -48,7 +48,7 @@ public class SelectionSchServiceImpl implements SelectionSchService {
 		if(stIdSeleSchList.isEmpty()) {
 			return new SelectionSchResponse(reqStId , " : 此學號尚未選課");
 		}
-		for(SelectionSch stIdSeleSch : stIdSeleSchList) {
+		for(SelectionSch stIdSeleSch : stIdSeleSchList) { // 選課表中找出學號所選課程代碼 再由課程代碼找出課程詳細資訊
 			String Co = stIdSeleSch.getCourseCode();
 			CourseSch cou = courseSchDao.findById(Co).get();
 			stIdCouSchList.add(cou);
