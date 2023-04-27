@@ -14,7 +14,9 @@ public interface CourseSchService {
 	
 	public CourseSchResponse getCourse(CourseSchRequest request);
 	
-	public CourseSchResponse reviseCourse(CourseSchRequest request);
+	public CourseSchResponse deleteCourse(CourseSchRequest request);
 	
 	public CourseSchResponse findCourseName(CourseSchRequest request);
+	
+	public CourseSchResponse reviseCourse(CourseSchRequest request);
 }

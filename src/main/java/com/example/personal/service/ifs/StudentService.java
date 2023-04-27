@@ -12,4 +12,6 @@ public interface StudentService {
 	public StudentResponse withdrawCourse(StudentRequest request);
 	
 	public StudentResponse deleteStudId(StudentRequest request);
+	
+	public StudentResponse reviseStudId(StudentRequest request);
 }

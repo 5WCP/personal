@@ -11,4 +11,6 @@ import com.example.personal.entity.SelectionSch;
 public interface SelectionSchDao extends JpaRepository<SelectionSch, String> {
 	
 	List<SelectionSch> findByStudId(String studId);
+	
+	List<SelectionSch> findByCourseCode(String courseCode);
 }

@@ -3,6 +3,7 @@ package com.example.personal.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,6 +13,7 @@ import com.example.personal.request.CourseSchRequest;
 import com.example.personal.response.CourseSchResponse;
 import com.example.personal.service.ifs.CourseSchService;
 
+@CrossOrigin
 @RestController
 public class CourseSchController {
 
@@ -33,13 +35,18 @@ public class CourseSchController {
 		return courseSchService.getCourse(request);
 	}
 	
-	@PostMapping("revise_course")
-	public CourseSchResponse reviseCourse(@RequestBody CourseSchRequest request) {
-		return courseSchService.reviseCourse(request);
+	@PostMapping("delete_course")
+	public CourseSchResponse deleteCourse(@RequestBody CourseSchRequest request) {
+		return courseSchService.deleteCourse(request);
 	}
 	
 	@PostMapping("find_course_name")
 	public CourseSchResponse findCourseName(@RequestBody CourseSchRequest request){
 		return courseSchService.findCourseName(request);
+	}
+	
+	@PostMapping("revise_course")
+	public CourseSchResponse reviseCourse(@RequestBody CourseSchRequest request) {
+		return courseSchService.reviseCourse(request);
 	}
 }

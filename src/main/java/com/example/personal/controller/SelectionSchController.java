@@ -1,6 +1,7 @@
 package com.example.personal.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,6 +10,7 @@ import com.example.personal.request.SelectionSchRequest;
 import com.example.personal.response.SelectionSchResponse;
 import com.example.personal.service.ifs.SelectionSchService;
 
+@CrossOrigin
 @RestController
 public class SelectionSchController {
 

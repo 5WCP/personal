@@ -30,7 +30,7 @@ public class StudentServiceImpl implements StudentService {
 	private StudentDao studentDao;
 	
 	@Override
-	public StudentResponse addStudId(StudentRequest request) {
+	public StudentResponse addStudId(StudentRequest request) { // 新增多個學生
 		List<Student> reqStuList = request.getStudentList(); // 預新增的學生列表
 		String StudIdFormat = "[BCD]\\d{4}";
 		String errMge = "錯誤訊息 : ";
@@ -57,7 +57,7 @@ public class StudentServiceImpl implements StudentService {
 	}
 	
 	@Override
-	public StudentResponse chooseCourse(StudentRequest request) {
+	public StudentResponse chooseCourse(StudentRequest request) { // 一個學號選多個課程
 		if(!StringUtils.hasText(request.getStudId())) {
 			return new StudentResponse("請輸入學號");
 		}
@@ -72,6 +72,10 @@ public class StudentServiceImpl implements StudentService {
 		CourseSch cou;
 		int totCre = 0;
 		int CouSt = 0;
+		String StudIdFormat = "[BCD]\\d{4}";
+		if(!request.getStudId().matches(StudIdFormat)) {
+			return new StudentResponse("學號格式錯誤 正確格式 : (B|C|D)&三個阿拉伯數字");
+		}
 		if(!studentDao.existsById(request.getStudId())) {
 			errMge += request.getStudId() + " : 學號不存在 ";
 			return new StudentResponse(errMge);
@@ -181,10 +185,14 @@ public class StudentServiceImpl implements StudentService {
 	}
 
 	@Override
-	public StudentResponse withdrawCourse(StudentRequest request) {
+	public StudentResponse withdrawCourse(StudentRequest request) { // 一個學號退選多個課程
+		String StudIdFormat = "[BCD]\\d{4}";
 		String errMge = "錯誤訊息 : ";
 		if(!StringUtils.hasText(request.getStudId())) {
 			return new StudentResponse("需填寫欄位請確實填寫");
+		}
+		if(!request.getStudId().matches(StudIdFormat)) {
+			return new StudentResponse("學號格式錯誤 正確格式 : (B|C|D)&三個阿拉伯數字");
 		}
 		if(!studentDao.existsById(request.getStudId())) {
 			errMge += request.getStudId() + " : 學號不存在";
@@ -227,10 +235,14 @@ public class StudentServiceImpl implements StudentService {
 	}
 
 	@Override
-	public StudentResponse deleteStudId(StudentRequest request) {
+	public StudentResponse deleteStudId(StudentRequest request) { // 單個刪除學生
+		String StudIdFormat = "[BCD]\\d{4}";
 		String reqStId = request.getStudId();
 		if(!StringUtils.hasText(reqStId)) {
 			return new StudentResponse(reqStId , "預刪除的學號請確實填寫");
+		}
+		if(!reqStId.matches(StudIdFormat)) {
+			return new StudentResponse("學號格式錯誤 正確格式 : (B|C|D)&三個阿拉伯數字");
 		}
 		if(!studentDao.existsById(reqStId)) {
 			return new StudentResponse(reqStId , "該學號不存在");
@@ -241,5 +253,32 @@ public class StudentServiceImpl implements StudentService {
 		}
 		studentDao.delete(stu);
 		return new StudentResponse(stu , "學號刪除完畢");
+	}
+
+	@Override
+	public StudentResponse reviseStudId(StudentRequest request) {
+		String StudIdFormat = "[BCD]\\d{4}";
+		List<Student> reqStuList = request.getStudentList();
+		String errMge = "錯誤訊息 : ";
+		if(reqStuList.isEmpty()) {
+			return new StudentResponse("請至少輸入一位學生");
+		}
+		for(Student reqStu : reqStuList) {
+			if(!StringUtils.hasText(reqStu.getStudId())
+				|| !StringUtils.hasText(reqStu.getName())) {
+				return new StudentResponse("需填寫欄位請確實填寫");
+			}
+			if(!reqStu.getStudId().matches(StudIdFormat)) {
+				return new StudentResponse("學號格式錯誤 正確格式 : (B|C|D)&三個阿拉伯數字");
+			}
+			if(!studentDao.existsById(reqStu.getStudId())) {
+				errMge += reqStu.getStudId() + " : 此學號已存在 ";
+			}
+		}
+		if(errMge != "錯誤訊息 : ") { // 預修改不存在的學號 顯示錯誤訊息
+			return new StudentResponse(errMge);
+		}
+		studentDao.saveAll(reqStuList);
+		return new StudentResponse(reqStuList, "學生資料更改成功");
 	}
 }
