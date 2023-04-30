@@ -16,6 +16,9 @@ public class StudentRequest {
 	@JsonProperty("stud_id")
 	private String StudId;
 	
+	@JsonProperty("name")
+	private String name;
+	
 	public String getStudId() {
 		return StudId;
 	}
@@ -38,6 +41,14 @@ public class StudentRequest {
 
 	public void setStudentList(List<Student> studentList) {
 		this.studentList = studentList;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 }

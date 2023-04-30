@@ -45,6 +45,18 @@ public class StudentServiceImpl implements StudentService {
 			if(!reqStu.getStudId().matches(StudIdFormat)) {
 				return new StudentResponse("學號格式錯誤 正確格式 : (B|C|D)&三個阿拉伯數字");
 			}
+			int count = 0;
+			for(Student checkSameId : reqStuList) {
+				if(reqStu.getStudId().equals(checkSameId.getStudId())) {
+					count++;
+					if(count == 1) {
+						continue;
+					}
+					if(count == 2) {
+						return new StudentResponse("此次新增的學生列表有相同的學號");
+					}
+				}
+			}
 			if(studentDao.existsById(reqStu.getStudId())) {
 				errMge += reqStu.getStudId() + " : 此學號已存在 ";
 			}
@@ -181,7 +193,7 @@ public class StudentServiceImpl implements StudentService {
 		stu.setTotalCredits(totCre); // 本次選修課程列表無異常 設定學生總學分
 		studentDao.save(stu);
 		selectionSchDao.saveAll(newSeleList);
-		return new StudentResponse(couList, "本次所選課程如上 目前該學號所選課程總學分為 : ", totCre);
+		return new StudentResponse(couList, "本次所選課程如下 : ", totCre);
 	}
 
 	@Override
@@ -229,36 +241,15 @@ public class StudentServiceImpl implements StudentService {
 			studentDao.save(stu);
 			selectionSchDao.deleteAll(dropSeleList); // 刪除選課表資訊
 			return new StudentResponse("成功退選課程如下(如有退選但未退選成功 可能原因 : "
-					+ "1 預退選的課程並未選修 2 沒有此課程) : \n目前總學分為 : " , totCre , dropSeleList);
+					+ "1 預退選的課程並未選修 2 沒有此課程) : " , totCre , dropSeleList);
 		}
 		return new StudentResponse("預退選的課程全部退選失敗");
 	}
 
 	@Override
-	public StudentResponse deleteStudId(StudentRequest request) { // 單個刪除學生
+	public StudentResponse deleteStudId(StudentRequest request) { // 刪除多個學生
 		String StudIdFormat = "[BCD]\\d{4}";
-		String reqStId = request.getStudId();
-		if(!StringUtils.hasText(reqStId)) {
-			return new StudentResponse(reqStId , "預刪除的學號請確實填寫");
-		}
-		if(!reqStId.matches(StudIdFormat)) {
-			return new StudentResponse("學號格式錯誤 正確格式 : (B|C|D)&三個阿拉伯數字");
-		}
-		if(!studentDao.existsById(reqStId)) {
-			return new StudentResponse(reqStId , "該學號不存在");
-		}
-		Student stu = studentDao.findById(reqStId).get();
-		if(stu.getTotalCredits() > 0) { // 學分大於0 代表有選修課程
-			return new StudentResponse(stu , "該學生尚有選修中的課程 無法刪除學號");
-		}
-		studentDao.delete(stu);
-		return new StudentResponse(stu , "學號刪除完畢");
-	}
-
-	@Override
-	public StudentResponse reviseStudId(StudentRequest request) {
-		String StudIdFormat = "[BCD]\\d{4}";
-		List<Student> reqStuList = request.getStudentList();
+		List<Student> reqStuList = request.getStudentList(); // 預修改的學生列表
 		String errMge = "錯誤訊息 : ";
 		if(reqStuList.isEmpty()) {
 			return new StudentResponse("請至少輸入一位學生");
@@ -271,14 +262,121 @@ public class StudentServiceImpl implements StudentService {
 			if(!reqStu.getStudId().matches(StudIdFormat)) {
 				return new StudentResponse("學號格式錯誤 正確格式 : (B|C|D)&三個阿拉伯數字");
 			}
+			int count = 0;
+			for(Student checkSameId : reqStuList) {
+				if(reqStu.getStudId().equals(checkSameId.getStudId())) {
+					count++;
+					if(count == 1) {
+						continue;
+					}
+					if(count == 2) {
+						return new StudentResponse("此次刪除的學生列表有相同的學號");
+					}
+				}
+			}
 			if(!studentDao.existsById(reqStu.getStudId())) {
-				errMge += reqStu.getStudId() + " : 此學號已存在 ";
+				errMge += reqStu.getStudId() + " : 該學號不存在 ";
+			}
+		}
+		if(errMge != "錯誤訊息 : ") { // 預刪除不存在的學號 顯示錯誤訊息
+			return new StudentResponse(errMge);
+		}
+		for(Student reqStu : reqStuList) {
+			Student stu = studentDao.findById(reqStu.getStudId()).get();
+			if(stu.getTotalCredits() > 0) {
+				errMge += stu.getStudId() + "該學號尚有選修中的學分 刪除失敗 " ;
+			}
+			if(!reqStu.getName().equals(stu.getName())) {
+				errMge += stu.getStudId() + "輸入的資料與資料庫不吻合 刪除失敗 ";
+			}
+		}
+		if(errMge != "錯誤訊息 : ") { // 預刪除還有選修課程的學號或刪除的學生資料跟資料庫不吻合 顯示錯誤訊息
+			return new StudentResponse(errMge);
+		}
+		studentDao.deleteAll(reqStuList);
+		return new StudentResponse(reqStuList, "學號刪除成功");
+	}
+
+	@Override
+	public StudentResponse reviseStudId(StudentRequest request) { // 修改多個學生
+		String StudIdFormat = "[BCD]\\d{4}";
+		List<Student> reqStuList = request.getStudentList(); // 預修改的學生列表
+		String errMge = "錯誤訊息 : ";
+		if(reqStuList.isEmpty()) {
+			return new StudentResponse("請至少輸入一位學生");
+		}
+		for(Student reqStu : reqStuList) {
+			if(!StringUtils.hasText(reqStu.getStudId())
+				|| !StringUtils.hasText(reqStu.getName())) {
+				return new StudentResponse("需填寫欄位請確實填寫");
+			}
+			if(!reqStu.getStudId().matches(StudIdFormat)) {
+				return new StudentResponse("學號格式錯誤 正確格式 : (B|C|D)&三個阿拉伯數字");
+			}
+			int count = 0;
+			for(Student checkSameId : reqStuList) {
+				if(reqStu.getStudId().equals(checkSameId.getStudId())) {
+					count++;
+					if(count == 1) {
+						continue;
+					}
+					if(count == 2) {
+						return new StudentResponse("此次修改的學生列表有相同的學號");
+					}
+				}
+			}
+			if(!studentDao.existsById(reqStu.getStudId())) {
+				errMge += reqStu.getStudId() + " : 該學號不存在 ";
 			}
 		}
 		if(errMge != "錯誤訊息 : ") { // 預修改不存在的學號 顯示錯誤訊息
 			return new StudentResponse(errMge);
 		}
+		for(Student reqStu : reqStuList) {
+			Student stu = studentDao.findById(reqStu.getStudId()).get();
+			if(reqStu.getName().equals(stu.getName())) {
+				errMge += reqStu.getStudId() + " : 此次修改的內容與原先的內容相同 無需修改 ";
+			}
+		}
+		if(errMge != "錯誤訊息 : ") { // 更改內容與原先資料相同 顯示錯誤訊息
+			return new StudentResponse(errMge);
+		}
 		studentDao.saveAll(reqStuList);
 		return new StudentResponse(reqStuList, "學生資料更改成功");
+	}
+
+	@Override
+	public List<Student> getAllStu() {
+		return studentDao.findAll();
+	}
+
+	@Override
+	public StudentResponse getStu(StudentRequest request) {
+		String StudIdFormat = "[BCD]\\d{4}";
+		String reqStId = request.getStudId();
+		if(!StringUtils.hasText(reqStId)) {
+			return new StudentResponse("預搜尋的學號請確實填寫");
+		}
+		if(!reqStId.matches(StudIdFormat)) {
+			return new StudentResponse("學號格式錯誤 正確格式 : (B|C|D)&三個阿拉伯數字");
+		}
+		if(!studentDao.existsById(reqStId)) {
+			return new StudentResponse(reqStId + " : 學號不存在");
+		}
+		Student stu = studentDao.findById(reqStId).get();
+		return new StudentResponse(stu , "查詢成功");
+	}
+
+	@Override
+	public StudentResponse findStuByName(StudentRequest request) {
+		String reqName = request.getName();
+		if(!StringUtils.hasText(reqName)) {
+			return new StudentResponse("預搜尋的名字請確實輸入");
+		}
+		List<Student> getStuList = studentDao.findByName(reqName);
+		if(getStuList.isEmpty()) {
+			return new StudentResponse("資料庫沒有此姓名的學生");
+		}
+		return new StudentResponse(getStuList , "搜尋成功");
 	}
 }

@@ -15,7 +15,7 @@ public class CourseSchResponse {
 	@JsonProperty("course_sch_list")
 	private List<CourseSch> courseSchList;
 	
-	@JsonProperty("courser_code")
+	@JsonProperty("course_code")
 	private String courseCode;	
 	
 	private String message;

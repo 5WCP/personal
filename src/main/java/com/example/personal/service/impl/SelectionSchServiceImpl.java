@@ -15,7 +15,6 @@ import com.example.personal.repository.SelectionSchDao;
 import com.example.personal.repository.StudentDao;
 import com.example.personal.request.SelectionSchRequest;
 import com.example.personal.response.SelectionSchResponse;
-import com.example.personal.response.StudentResponse;
 import com.example.personal.service.ifs.SelectionSchService;
 
 @Service
@@ -46,7 +45,7 @@ public class SelectionSchServiceImpl implements SelectionSchService {
 			return new SelectionSchResponse(reqStId + " : 學號不存在");
 		}
 		if(stIdSeleSchList.isEmpty()) {
-			return new SelectionSchResponse(reqStId , " : 此學號尚未選課");
+			return new SelectionSchResponse(reqStId + " : 此學號尚未選課");
 		}
 		for(SelectionSch stIdSeleSch : stIdSeleSchList) { // 選課表中找出學號所選課程代碼 再由課程代碼找出課程詳細資訊
 			String Co = stIdSeleSch.getCourseCode();
