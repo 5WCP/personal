@@ -83,10 +83,9 @@ public class StudentResponse {
 		
 	}
 
-	public StudentResponse(List<CourseSch> courseSchList, String message, Integer totalCredits) {
+	public StudentResponse(String message , List<CourseSch> courseSchList) {
 		this.courseSchList = courseSchList;
 		this.message = message;
-		this.totalCredits = totalCredits;
 	}
 
 	public StudentResponse(String message) {
@@ -96,12 +95,6 @@ public class StudentResponse {
 	public StudentResponse(List<Student> studentList, String message) {
 		this.studentList = studentList;
 		this.message = message;
-	}
-
-	public StudentResponse(String message, Integer totalCredits, List<SelectionSch> dropCrousesList) {
-		this.message = message;
-		this.totalCredits = totalCredits;
-		this.dropCrousesList = dropCrousesList;
 	}
 
 	public StudentResponse(Student student, String message) {

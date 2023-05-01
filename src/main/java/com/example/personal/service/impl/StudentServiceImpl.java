@@ -58,7 +58,7 @@ public class StudentServiceImpl implements StudentService {
 				}
 			}
 			if(studentDao.existsById(reqStu.getStudId())) {
-				errMge += reqStu.getStudId() + " : 此學號已存在 ";
+				errMge += reqStu.getStudId() + "(此學號已存在)\n";
 			}
 		}
 		if(errMge != "錯誤訊息 : ") { // 預新增已存在的學號 顯示錯誤訊息
@@ -85,6 +85,7 @@ public class StudentServiceImpl implements StudentService {
 		int totCre = 0;
 		int CouSt = 0;
 		String StudIdFormat = "[BCD]\\d{4}";
+		String CoFormat = "[ABC]\\d{2}";
 		if(!request.getStudId().matches(StudIdFormat)) {
 			return new StudentResponse("學號格式錯誤 正確格式 : (B|C|D)&三個阿拉伯數字");
 		}
@@ -98,6 +99,9 @@ public class StudentServiceImpl implements StudentService {
 		for(String Co : CoList) {
 			if(!StringUtils.hasText(Co)) {
 				return new StudentResponse("課堂代碼請確實填寫");
+			}
+			if(!Co.matches(CoFormat)) {
+				return new StudentResponse("課程代碼格式錯誤 正確格式 : (A|B|C)&兩個阿拉伯數字");
 			}
 			if(!courseSchDao.existsById(Co)) {
 				errMge += Co + " : 暫無此課程代碼 ";
@@ -150,7 +154,7 @@ public class StudentServiceImpl implements StudentService {
 			}
 			CouSt = cou.getStuCount();
 			if(CouSt >= 3) { // 超過課堂人數上限不得選修
-				errMge += Co + " : 該課堂人數已達上限 ";
+				errMge += Co + "(該課堂人數已達上限)\n";
 			}
 			if(totCre >= 10) { // 超過學分可選修總學分 不得選修
 				return new StudentResponse("學生課程總學分已達上限");
@@ -160,7 +164,7 @@ public class StudentServiceImpl implements StudentService {
 					CourseSch seleCou = courseSchDao.findById(se.getCourseCode()).get();
 					if(Co.equals(se.getCourseCode()) // 相同課程代碼或課程名稱相同
 						|| cou.getCourseName().equals(seleCou.getCourseName())) {
-						errMge += Co + " : 相同或名稱相同的課程只能選擇一堂 ";
+						errMge += Co + "(相同或名稱相同的課程只能選擇一堂)\n";
 					}
 					if(!cou.getTakeClassDay().equals(seleCou.getTakeClassDay())) { // 衝堂
 						continue;
@@ -168,7 +172,7 @@ public class StudentServiceImpl implements StudentService {
 							|| cou.getStartTime().compareTo(seleCou.getEndTime()) >= 0) {
 						continue;
 					} else {
-							errMge += Co + " : 該課堂跟已加選的課程衝堂 ";
+							errMge += Co + "(該課堂跟已加選的課程衝堂)\n";
 					}
 				}
 			}			
@@ -193,15 +197,16 @@ public class StudentServiceImpl implements StudentService {
 		stu.setTotalCredits(totCre); // 本次選修課程列表無異常 設定學生總學分
 		studentDao.save(stu);
 		selectionSchDao.saveAll(newSeleList);
-		return new StudentResponse(couList, "本次所選課程如下 : ", totCre);
+		return new StudentResponse("本次所選課程如下 : " , couList);
 	}
 
 	@Override
 	public StudentResponse withdrawCourse(StudentRequest request) { // 一個學號退選多個課程
 		String StudIdFormat = "[BCD]\\d{4}";
+		String CoFormat = "[ABC]\\d{2}";
 		String errMge = "錯誤訊息 : ";
 		if(!StringUtils.hasText(request.getStudId())) {
-			return new StudentResponse("需填寫欄位請確實填寫");
+			return new StudentResponse("請輸入學號");
 		}
 		if(!request.getStudId().matches(StudIdFormat)) {
 			return new StudentResponse("學號格式錯誤 正確格式 : (B|C|D)&三個阿拉伯數字");
@@ -223,6 +228,9 @@ public class StudentServiceImpl implements StudentService {
 			if(!StringUtils.hasText(dropACo)) {
 				return new StudentResponse("預退選課堂代碼請確實填寫");
 			}
+			if(!dropACo.matches(CoFormat)) {
+				return new StudentResponse("課程代碼格式錯誤 正確格式 : (A|B|C)&兩個阿拉伯數字");
+			}
 			for(SelectionSch sele : seleSch) {
 				if(dropACo.equals(sele.getCourseCode())) { // 比對預退選課程是否存在於選課表中
 					CourseSch cou = courseSchDao.findById(dropACo).get();
@@ -237,13 +245,19 @@ public class StudentServiceImpl implements StudentService {
 			}
 		}
 		if(!dropSeleList.isEmpty()) {
+			List<CourseSch> dropCouList = new ArrayList<>();
 			stu.setTotalCredits(totCre);
 			studentDao.save(stu);
 			selectionSchDao.deleteAll(dropSeleList); // 刪除選課表資訊
+			for(SelectionSch dropSele : dropSeleList) {
+				CourseSch dropCou = courseSchDao.findById(dropSele.getCourseCode()).get();
+				dropCouList.add(dropCou);
+			}
 			return new StudentResponse("成功退選課程如下(如有退選但未退選成功 可能原因 : "
-					+ "1 預退選的課程並未選修 2 沒有此課程) : " , totCre , dropSeleList);
+					+ "1 預退選的課程並未選修 2 沒有此課程) : " , dropCouList);
 		}
-		return new StudentResponse("預退選的課程全部退選失敗");
+		return new StudentResponse("預退選的課程全部退選失敗 可能原因 : 1 預退選的課程並未選修 "
+				+ "2 沒有此課程");
 	}
 
 	@Override
@@ -275,7 +289,7 @@ public class StudentServiceImpl implements StudentService {
 				}
 			}
 			if(!studentDao.existsById(reqStu.getStudId())) {
-				errMge += reqStu.getStudId() + " : 該學號不存在 ";
+				errMge += reqStu.getStudId() + "(該學號不存在)\n";
 			}
 		}
 		if(errMge != "錯誤訊息 : ") { // 預刪除不存在的學號 顯示錯誤訊息
@@ -284,10 +298,10 @@ public class StudentServiceImpl implements StudentService {
 		for(Student reqStu : reqStuList) {
 			Student stu = studentDao.findById(reqStu.getStudId()).get();
 			if(stu.getTotalCredits() > 0) {
-				errMge += stu.getStudId() + "該學號尚有選修中的學分 刪除失敗 " ;
+				errMge += stu.getStudId() + "(該學號尚有選修中的學分 刪除失敗)\n" ;
 			}
 			if(!reqStu.getName().equals(stu.getName())) {
-				errMge += stu.getStudId() + "輸入的資料與資料庫不吻合 刪除失敗 ";
+				errMge += stu.getStudId() + "(輸入的資料與資料庫不吻合 刪除失敗)\n";
 			}
 		}
 		if(errMge != "錯誤訊息 : ") { // 預刪除還有選修課程的學號或刪除的學生資料跟資料庫不吻合 顯示錯誤訊息
@@ -326,7 +340,7 @@ public class StudentServiceImpl implements StudentService {
 				}
 			}
 			if(!studentDao.existsById(reqStu.getStudId())) {
-				errMge += reqStu.getStudId() + " : 該學號不存在 ";
+				errMge += reqStu.getStudId() + "(該學號不存在)\n";
 			}
 		}
 		if(errMge != "錯誤訊息 : ") { // 預修改不存在的學號 顯示錯誤訊息
@@ -335,7 +349,7 @@ public class StudentServiceImpl implements StudentService {
 		for(Student reqStu : reqStuList) {
 			Student stu = studentDao.findById(reqStu.getStudId()).get();
 			if(reqStu.getName().equals(stu.getName())) {
-				errMge += reqStu.getStudId() + " : 此次修改的內容與原先的內容相同 無需修改 ";
+				errMge += reqStu.getStudId() + "(此次修改的內容與原先的內容相同 無需修改)\n";
 			}
 		}
 		if(errMge != "錯誤訊息 : ") { // 更改內容與原先資料相同 顯示錯誤訊息
